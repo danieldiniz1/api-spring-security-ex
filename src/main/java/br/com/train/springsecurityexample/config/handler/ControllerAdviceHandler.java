@@ -5,6 +5,7 @@ import br.com.train.springsecurityexample.model.dto.ExceptionResponseDTO;
 import io.swagger.v3.oas.annotations.Hidden;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -21,5 +22,13 @@ public class ControllerAdviceHandler {
                 .status(HttpStatus.FORBIDDEN)
                 .body(new ExceptionResponseDTO(LocalDateTime.now(TimeZone.getTimeZone("America/Sao_Paulo").toZoneId()),
                         HttpStatus.FORBIDDEN.toString(), e.getMessage()));
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ExceptionResponseDTO> handleUsernameNotFoundException(UsernameNotFoundException e) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(new ExceptionResponseDTO(LocalDateTime.now(TimeZone.getTimeZone("America/Sao_Paulo").toZoneId()),
+                        HttpStatus.NOT_FOUND.toString(), e.getMessage()));
     }
 }

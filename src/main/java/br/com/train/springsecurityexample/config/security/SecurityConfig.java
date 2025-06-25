@@ -30,7 +30,8 @@ public class SecurityConfig {
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         JwtTokenFilter customFilter = new JwtTokenFilter(jwtTokenProvider);
         return http
                 .httpBasic(AbstractHttpConfigurer::disable)
@@ -41,7 +42,10 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(authorizationMatchers ->
                         authorizationMatchers
-                                .requestMatchers("/api/v1/auth/**","/api/v1/refresh/**","/api/swagger-ui", "/V3/api-docs/**").permitAll()
+                                .requestMatchers("/v1/auth/**",
+                                        "/v1/refresh/**",
+                                        "/swagger-ui/**",
+                                        "/v3/api-docs/**").permitAll()
                                 .requestMatchers("/api/users/**").hasRole("USER")
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                 .requestMatchers("/api/actuator/**").hasRole("ACTUATOR")
@@ -54,13 +58,13 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManagerBean(AuthenticationConfiguration configuration) throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
         return configuration.getAuthenticationManager();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        PasswordEncoder pbkdfeEncoder = new Pbkdf2PasswordEncoder("",8,185000, Pbkdf2PasswordEncoder.SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256);
+        PasswordEncoder pbkdfeEncoder = new Pbkdf2PasswordEncoder("",8,18500, Pbkdf2PasswordEncoder.SecretKeyFactoryAlgorithm.PBKDF2WithHmacSHA256);
 
         Map<String, PasswordEncoder> encoders = new HashMap<>();
         encoders.put("pbkdf2", pbkdfeEncoder);

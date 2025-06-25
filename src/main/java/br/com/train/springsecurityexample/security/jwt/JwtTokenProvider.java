@@ -19,6 +19,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -52,7 +53,7 @@ public class JwtTokenProvider {
     public TokenDTO generateToken(String username, List<String> roles) {
         LocalDateTime createdAt = LocalDateTime.now();
         LocalDateTime expiration = createdAt.plus(expireLengthInMillisSeconds, java.time.temporal.ChronoUnit.MILLIS);
-        Boolean authenticated = null;
+        Boolean authenticated = true;
         String refreshToken = getRefreshToken(username, roles, createdAt, expiration);
         String token = getAcessToken(username, roles, createdAt, expiration);
         return new TokenDTO(username, token, refreshToken, authenticated, expiration, createdAt);
@@ -62,8 +63,8 @@ public class JwtTokenProvider {
         LocalDateTime refreshExpiration = expiration.plusDays(refreshExpireLengthInDays);
         return JWT.create()
                 .withClaim("roles", roles)
-                .withIssuedAt(Date.from(Instant.from(createdAt)))
-                .withExpiresAt(Date.from(Instant.from(refreshExpiration)))
+                .withIssuedAt(createdAt.atZone(ZoneId.systemDefault()).toInstant())
+                .withExpiresAt(refreshExpiration.atZone(ZoneId.systemDefault()).toInstant())
                 .withSubject(username)
                 .sign(algorithm);
     }
@@ -72,8 +73,8 @@ public class JwtTokenProvider {
         String issueUrl = ServletUriComponentsBuilder.fromCurrentContextPath().build().toUriString();
         return JWT.create()
                 .withClaim("roles", roles)
-                .withIssuedAt(Date.from(Instant.from(createdAt)))
-                .withExpiresAt(Date.from(Instant.from(expiration)))
+                .withIssuedAt(createdAt.atZone(ZoneId.systemDefault()).toInstant())
+                .withExpiresAt(expiration.atZone(ZoneId.systemDefault()).toInstant())
                 .withSubject(username)
                 .withIssuer(issueUrl)
                 .sign(algorithm);
@@ -93,10 +94,10 @@ public class JwtTokenProvider {
 
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.isEmpty(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring("Bearer ".length());
+        if (StringUtils.isNoneBlank(bearerToken)) {
+            if(bearerToken.startsWith("Bearer ")) return bearerToken.substring("Bearer ".length());
         }
-        throw new InvalidJWTAuthenticationException("Invalid JWT token");
+        return null;
     }
 
     public boolean isTokenValid(String token) {
@@ -104,6 +105,7 @@ public class JwtTokenProvider {
             DecodedJWT decodedJWT = decodedToken(token);
             return !decodedJWT.getExpiresAt().before(new Date());
         } catch (Exception e) {
+
             throw new InvalidJWTAuthenticationException("Invalid JWT token");
         }
     }

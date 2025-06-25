@@ -13,7 +13,7 @@ public class PermisionModel implements GrantedAuthority {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(length = 255)
+    @Column()
     private String description;
 
     @Override

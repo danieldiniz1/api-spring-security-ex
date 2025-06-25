@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -44,9 +45,12 @@ public class UserModel implements UserDetails {
     private List<PermisionModel> permissions;
 
     public List<String> getRoles() {
-        return permissions.stream()
-                .map(PermisionModel::getDescription)
-                .toList();
+        List<String> roles = new ArrayList<>();
+        for (PermisionModel permission : this.permissions) {
+            roles.add(permission.getDescription());
+        }
+        return roles;
+
     }
 
     public UserModel() {
