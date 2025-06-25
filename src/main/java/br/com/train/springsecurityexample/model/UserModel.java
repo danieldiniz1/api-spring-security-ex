@@ -45,12 +45,9 @@ public class UserModel implements UserDetails {
     private List<PermisionModel> permissions;
 
     public List<String> getRoles() {
-        List<String> roles = new ArrayList<>();
-        for (PermisionModel permission : this.permissions) {
-            roles.add(permission.getDescription());
-        }
-        return roles;
-
+        return this.permissions.stream()
+                .map(PermisionModel::getDescription)
+                .toList();
     }
 
     public UserModel() {

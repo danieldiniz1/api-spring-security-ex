@@ -17,7 +17,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Base64;
@@ -59,6 +58,45 @@ public class JwtTokenProvider {
         return new TokenDTO(username, token, refreshToken, authenticated, expiration, createdAt);
     }
 
+    public TokenDTO refreshToken(HttpServletRequest request) {
+        String refreshToken = resolveToken(request);
+
+        DecodedJWT decodedJWT = decodedToken(refreshToken);
+        LocalDateTime createdAt = LocalDateTime.now();
+        LocalDateTime expiration = createdAt.plus(expireLengthInMillisSeconds, java.time.temporal.ChronoUnit.MILLIS);
+
+        String username = decodedJWT.getSubject();
+        List<String> roles = decodedJWT.getClaim("roles").asList(String.class);
+        String newRefreshToken = getRefreshToken(username, roles, createdAt, expiration);
+        String newAccessToken = getAcessToken(username, roles, createdAt, expiration);
+        return new TokenDTO(username, newAccessToken, newRefreshToken, true, expiration, createdAt);
+    }
+
+
+    public String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.isNoneBlank(bearerToken)) {
+            if (bearerToken.startsWith("Bearer ")) return bearerToken.substring("Bearer ".length());
+        }
+        return null;
+    }
+
+    public boolean isTokenValid(String token) {
+        try {
+            DecodedJWT decodedJWT = decodedToken(token);
+            return !decodedJWT.getExpiresAt().before(new Date());
+        } catch (Exception e) {
+
+            throw new InvalidJWTAuthenticationException("Invalid JWT token");
+        }
+    }
+
+    public Authentication getAuthentication(String token) {
+        DecodedJWT decodedJWT = decodedToken(token);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(decodedJWT.getSubject());
+        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+    }
+
     private String getRefreshToken(String username, List<String> roles, LocalDateTime createdAt, LocalDateTime expiration) {
         LocalDateTime refreshExpiration = expiration.plusDays(refreshExpireLengthInDays);
         return JWT.create()
@@ -80,34 +118,17 @@ public class JwtTokenProvider {
                 .sign(algorithm);
     }
 
-    public Authentication getAuthentication(String token) {
-        DecodedJWT decodedJWT = decodedToken(token);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(decodedJWT.getSubject());
-        return  new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
-    }
-
     private DecodedJWT decodedToken(String token) {
         JWTVerifier verifier = JWT.require(algorithm)
                 .build();
         return verifier.verify(token);
     }
 
-    public String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.isNoneBlank(bearerToken)) {
-            if(bearerToken.startsWith("Bearer ")) return bearerToken.substring("Bearer ".length());
+
+    private String validateAndSanitizeRefreshToken(String refreshToken) {
+        if (StringUtils.isBlank(refreshToken)) {
+            throw new InvalidJWTAuthenticationException("Refresh token is empty");
         }
-        return null;
+        return refreshToken.substring("Bearer ".length());
     }
-
-    public boolean isTokenValid(String token) {
-        try {
-            DecodedJWT decodedJWT = decodedToken(token);
-            return !decodedJWT.getExpiresAt().before(new Date());
-        } catch (Exception e) {
-
-            throw new InvalidJWTAuthenticationException("Invalid JWT token");
-        }
-    }
-
 }

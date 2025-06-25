@@ -44,7 +44,6 @@ public class JwtTokenFilter extends GenericFilterBean {
             logger.error("Invalid JWT token: {}", token);
             responseError.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.getWriter().write("{\"erro\": \"Acesso negado\"}");
-//            filterChain.doFilter(request, responseError);
             return;
         }
         filterChain.doFilter(request, response);

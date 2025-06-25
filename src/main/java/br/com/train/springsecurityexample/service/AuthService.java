@@ -4,6 +4,7 @@ import br.com.train.springsecurityexample.model.dto.TokenDTO;
 import br.com.train.springsecurityexample.model.form.AccountCredentialsForm;
 import br.com.train.springsecurityexample.repository.UserRepository;
 import br.com.train.springsecurityexample.security.jwt.JwtTokenProvider;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -34,6 +35,12 @@ public class AuthService {
         var user = userRepository.findByUsername(credentials.userName())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + credentials.userName()));
         return jwtTokenProvider.generateToken(user.getUsername(), user.getRoles());
+    }
+
+    public TokenDTO refreshToken(HttpServletRequest request, String username)  {
+        userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        return jwtTokenProvider.refreshToken(request);
     }
 
     private void validateCredentials(AccountCredentialsForm credentials) {
