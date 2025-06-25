@@ -31,12 +31,21 @@ public class JwtTokenFilter extends GenericFilterBean {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
         var token = jwtTokenProvider.resolveToken((HttpServletRequest) request);
-        if (StringUtils.isNoneBlank(token) && jwtTokenProvider.isTokenValid(token)) {
-            Authentication authentication = jwtTokenProvider.getAuthentication(token);
-            if (authentication != null) {
-                logger.info("Authenticated user: {}", authentication.getName());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+        try {
+            if (StringUtils.isNoneBlank(token) && jwtTokenProvider.isTokenValid(token)) {
+                Authentication authentication = jwtTokenProvider.getAuthentication(token);
+                if (authentication != null) {
+                    logger.info("Authenticated user: {}", authentication.getName());
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
             }
+        } catch (InvalidJWTAuthenticationException e) {
+            var responseError = (HttpServletResponse) response;
+            logger.error("Invalid JWT token: {}", token);
+            responseError.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            response.getWriter().write("{\"erro\": \"Acesso negado\"}");
+//            filterChain.doFilter(request, responseError);
+            return;
         }
         filterChain.doFilter(request, response);
     }
