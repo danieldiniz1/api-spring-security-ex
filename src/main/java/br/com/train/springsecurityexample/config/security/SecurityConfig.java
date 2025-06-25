@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -21,6 +22,7 @@ import java.util.Map;
 
 @EnableWebSecurity
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -45,10 +47,11 @@ public class SecurityConfig {
                                         "/v1/refresh/**",
                                         "/swagger-ui/**",
                                         "/v3/api-docs/**").permitAll()
-                                .requestMatchers("/api/users/**").hasRole("USER")
-                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/api/actuator/**").hasRole("ACTUATOR")
-                                .requestMatchers("/api/health/**").hasRole("HEALTH")
+                                .requestMatchers("/users/**").hasRole("USER")
+                                .requestMatchers("/admin/**").hasRole("ADMIN")
+                                .requestMatchers("/v1/test/test/createUser").hasRole("ADMIN")
+                                .requestMatchers("/actuator/**").hasRole("ACTUATOR")
+                                .requestMatchers("/health/**").hasRole("HEALTH")
                                 .requestMatchers("/users").denyAll()
                                 .anyRequest().authenticated()
                 )
