@@ -2,7 +2,7 @@ package br.com.train.springsecurityexample.controller;
 
 import br.com.train.springsecurityexample.model.dto.TokenDTO;
 import br.com.train.springsecurityexample.model.form.AccountCredentialsForm;
-import br.com.train.springsecurityexample.service.AuthService;
+import br.com.train.springsecurityexample.service.impl.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

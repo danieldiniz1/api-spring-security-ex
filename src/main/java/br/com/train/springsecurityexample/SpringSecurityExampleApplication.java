@@ -42,4 +42,9 @@ public class SpringSecurityExampleApplication {
         return encoder;
     }
 
+    private String generatePasswordHash(String password) {
+        PasswordEncoder encoder = passwordEncoder();
+        return encoder.encode(password);
+    }
+
 }

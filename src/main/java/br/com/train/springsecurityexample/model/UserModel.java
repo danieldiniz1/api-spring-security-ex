@@ -38,7 +38,7 @@ public class UserModel implements UserDetails {
     @Column(name = "active",nullable = true)
     private boolean active;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER,cascade = {CascadeType.PERSIST,CascadeType.MERGE,CascadeType.REFRESH})
     @JoinTable(name = "tb_user_permission",
             joinColumns ={ @JoinColumn(name = "id_user") },
             inverseJoinColumns = {@JoinColumn(name = "id_permission") })
@@ -154,5 +154,19 @@ public class UserModel implements UserDetails {
     @Override
     public int hashCode() {
         return Objects.hash(id, username, fullName, password, accountNonExpired, accountNonLocked, credentialsNonExpired, enabled, active, permissions);
+    }
+
+    public static UserModel valueOf(String username, String fullName, String password,List<PermisionModel> permissions) {
+        UserModel userModel = new UserModel();
+        userModel.setUsername(username);
+        userModel.setFullName(fullName);
+        userModel.setPassword(password);
+        userModel.setAccountNonExpired(true);
+        userModel.setAccountNonLocked(true);
+        userModel.setCredentialsNonExpired(true);
+        userModel.setEnabled(true);
+        userModel.setActive(true);
+        userModel.setPermissions(permissions != null ? permissions : new ArrayList<>());
+        return userModel;
     }
 }
