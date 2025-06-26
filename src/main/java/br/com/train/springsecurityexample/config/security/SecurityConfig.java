@@ -49,7 +49,7 @@ public class SecurityConfig {
                                         "/v3/api-docs/**").permitAll()
                                 .requestMatchers("/users/**").hasRole("USER")
                                 .requestMatchers("/admin/**").hasRole("ADMIN")
-                                .requestMatchers("/v1/test/test/createUser").hasRole("ADMIN")
+                                .requestMatchers("/v1/test/test/**").hasAnyRole("ADMIN", "USER","COMMON_USER","MANAGER")
                                 .requestMatchers("/actuator/**").hasRole("ACTUATOR")
                                 .requestMatchers("/health/**").hasRole("HEALTH")
                                 .requestMatchers("/users").denyAll()
